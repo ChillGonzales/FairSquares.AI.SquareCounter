@@ -20,7 +20,7 @@ def create_model():
   x = Dense(4096, activation='relu')(x)
   x = Dropout(0.5)(x)
   prediction = Dense(1, activation='linear')(x)
-  head_model = Model(input=base_model.input, output=prediction)
+  head_model = Model(inputs=base_model.input, outputs=prediction)
   opt = Adam(lr = 0.0005)
   head_model.compile(optimizer=opt, loss='mean_squared_error', metrics=['accuracy'])
   return head_model
