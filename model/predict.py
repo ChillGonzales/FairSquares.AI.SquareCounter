@@ -13,5 +13,7 @@ def predict():
   predicted = head_model.predict(scaled_inputs, batch_size=len(scaled_inputs))
   unscaled_predictions = output_scaler.inverse_transform(predicted)
   for i in range(len(unscaled_predictions)):
-    print("Predicted: " + str(unscaled_predictions[i]) + ". Actual: " + str(outputs[i]))
+    accuracy = abs((unscaled_predictions[i] - outputs[i])) / outputs[i]
+    # unscaled_accuracy = abs((predicted[i] - scaled_outputs[i])) / scaled_outputs[i]
+    print("Predicted: " + str(unscaled_predictions[i]) + ". Actual: " + str(outputs[i]) + ". Accuracy: " + str(accuracy))
   print("Prediction complete!")

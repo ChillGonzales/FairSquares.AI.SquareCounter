@@ -11,7 +11,7 @@ def train(epochs=250,
   head_model = create_model()
 
   # Train model and save weights
-  head_model.fit(scaled_inputs, scaled_outputs, batch_size=len(scaled_inputs), epochs=1000, verbose=2)
+  head_model.fit(scaled_inputs, scaled_outputs, batch_size=len(scaled_inputs), epochs=epochs, verbose=2)
   if (save_weights):
     head_model.save_weights("weights.hdf5")
   print("Training complete!")
