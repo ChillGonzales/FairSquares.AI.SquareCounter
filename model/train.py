@@ -8,7 +8,7 @@ def train(epochs=250,
   _, _, scaled_inputs, scaled_outputs, _ = get_data()
 
   # Get model
-  head_model = create_model()
+  head_model = create_model("vgg19")
 
   # Train model and save weights
   head_model.fit(scaled_inputs, scaled_outputs, batch_size=len(scaled_inputs), epochs=epochs, verbose=2)
