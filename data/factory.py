@@ -1,22 +1,29 @@
 import os
 import csv
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 from sklearn.preprocessing import MinMaxScaler
 
 def get_data():
     # Get top roof images
   img_directory = "C:\\Images"
-  img_file_name = "top.png"
+  top_file_name = "top.png"
+  front_file_name = "front.png"
   img_size = 299, 299
   keys = os.listdir(img_directory)
   imgs = []
   for name in keys:
-    img = Image.open(img_directory + "\\" + name + "\\" + img_file_name).convert("RGB")
-    img.thumbnail(img_size, Image.ANTIALIAS)
-    arr = np.array(img)
-    padded = np.pad(arr, ((120, 0), (0,0), (0,0)), 'constant')
-    imgs.append(padded)
+    top = Image.open(img_directory + "\\" + name + "\\" + top_file_name).convert("RGB")
+    front = Image.open(img_directory + "\\" + name + "\\" + front_file_name).convert("RGB")
+
+    top_fitted = ImageOps.fit(top, img_size, Image.ANTIALIAS)
+    front_fitted = ImageOps.fit(front, img_size, Image.ANTIALIAS)
+
+    top_arr = np.array(top_fitted)
+    front_arr = np.array(front_fitted)
+
+    combined = np.concatenate((top_arr, front_arr))
+    imgs.append(combined)
 
   images = sorted(zip(keys, imgs), key= lambda x: x[0])
 

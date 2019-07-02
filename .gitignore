@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 
 *.hdf5
+.vs/
 
 # C extensions
 *.so
