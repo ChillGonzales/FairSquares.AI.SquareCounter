@@ -29,22 +29,33 @@ def get_data():
 
   # Get predictions
   y_actual=[]
+  features=[]
   with open('predictions.csv') as file_reader:
     reader = csv.reader(file_reader)
     for row in reader:
-      y_actual.append((row[0], float(row[1])))
+      y_actual.append((row[0], float(row[-1])))
+      features.append((row[0], row[1:-1]))
   y_actual = sorted(y_actual, key= lambda x: x[0])
+  features = sorted(features, key= lambda x: x[0])
 
   # Make sure our count of data is correct
   assert (len(images) == len(y_actual))
+  assert (len(features) == len(images))
 
   # Remove junk (id's) from input data
-  inputs = np.array([list(x[1:]) for x in images])
+  images_trimmed = np.array([list(x[1:]) for x in images])
+  inputs = np.pad(images_trimmed, ((0, 0), (0, 0), (1, 0), (0, 0), (0, 0)), mode='constant')
+  features_trimmed = np.array([list(x[1:]) for x in features])
   outputs = np.array([list(x[1:]) for x in y_actual])
+  ft_shape = features_trimmed.shape
+  it_shape = inputs.shape
+  # adding features to image array
+  for i in range(ft_shape[0]):
+    padded = np.pad(features_trimmed[i][0][:].reshape((ft_shape[2], 1, 1)), [(0, 0), (0, it_shape[3] - 1), (0, it_shape[4] - 1)], mode='constant')
+    inputs[i][0][:ft_shape[2]][:][:] = padded
 
   # Scale data to be between (0, 1)
-  old_shape = inputs.shape
-  inputs = np.reshape(inputs, (old_shape[0], old_shape[2], old_shape[3], old_shape[4]))
+  inputs = np.reshape(inputs, (it_shape[0], it_shape[2], it_shape[3], it_shape[4]))
   scaler_out = MinMaxScaler()
   scaled_inputs = np.interp(inputs, (inputs.min(), inputs.max()), (0, +1))
   scaled_outputs = scaler_out.fit_transform(outputs)
