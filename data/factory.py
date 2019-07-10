@@ -8,22 +8,14 @@ def get_data():
     # Get top roof images
   img_directory = "C:\\Images"
   top_file_name = "top.png"
-  front_file_name = "front.png"
   img_size = 299, 299
   keys = os.listdir(img_directory)
   imgs = []
   for name in keys:
     top = Image.open(img_directory + "\\" + name + "\\" + top_file_name).convert("RGB")
-    front = Image.open(img_directory + "\\" + name + "\\" + front_file_name).convert("RGB")
-
     top_fitted = ImageOps.fit(top, img_size, Image.ANTIALIAS)
-    front_fitted = ImageOps.fit(front, img_size, Image.ANTIALIAS)
-
     top_arr = np.array(top_fitted)
-    front_arr = np.array(front_fitted)
-
-    combined = np.concatenate((top_arr, front_arr))
-    imgs.append(combined)
+    imgs.append(top_arr)
 
   images = sorted(zip(keys, imgs), key= lambda x: x[0])
 
@@ -44,20 +36,17 @@ def get_data():
 
   # Remove junk (id's) from input data
   images_trimmed = np.array([list(x[1:]) for x in images])
-  inputs = np.pad(images_trimmed, ((0, 0), (0, 0), (1, 0), (0, 0), (0, 0)), mode='constant')
   features_trimmed = np.array([list(x[1:]) for x in features])
   outputs = np.array([list(x[1:]) for x in y_actual])
   ft_shape = features_trimmed.shape
-  it_shape = inputs.shape
-  # adding features to image array
-  for i in range(ft_shape[0]):
-    padded = np.pad(features_trimmed[i][0][:].reshape((ft_shape[2], 1, 1)), [(0, 0), (0, it_shape[3] - 1), (0, it_shape[4] - 1)], mode='constant')
-    inputs[i][0][:ft_shape[2]][:][:] = padded
+  im_shape = images_trimmed.shape
 
   # Scale data to be between (0, 1)
-  inputs = np.reshape(inputs, (it_shape[0], it_shape[2], it_shape[3], it_shape[4]))
+  image_input = np.reshape(images_trimmed, (im_shape[0], im_shape[2], im_shape[3], im_shape[4]))
+  feature_input = np.reshape(features_trimmed, (ft_shape[0], ft_shape[2])).astype("int")
   scaler_out = MinMaxScaler()
-  scaled_inputs = np.interp(inputs, (inputs.min(), inputs.max()), (0, +1))
+  scaled_inputs = np.interp(image_input, (image_input.min(), image_input.max()), (0, +1))
+  scaled_features = np.interp(feature_input, (feature_input.min(), feature_input.max()), (0, +1))
   scaled_outputs = scaler_out.fit_transform(outputs)
 
-  return (inputs, outputs, scaled_inputs, scaled_outputs, scaler_out)
+  return ([image_input, feature_input], outputs, [scaled_inputs, scaled_features], scaled_outputs, scaler_out)

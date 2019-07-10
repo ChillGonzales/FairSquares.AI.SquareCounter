@@ -6,11 +6,11 @@ def predict():
   _, outputs, scaled_inputs, scaled_outputs, output_scaler = get_data()
 
   # Create model and load weights
-  head_model = create_model("vgg19", (599, 299, 3))
+  head_model = create_model("vgg19", (299, 299, 3), (38, ))
   head_model.load_weights("weights.hdf5")
 
   # Predict
-  predicted = head_model.predict(scaled_inputs, batch_size=len(scaled_inputs))
+  predicted = head_model.predict(scaled_inputs, batch_size=20)
   unscaled_predictions = output_scaler.inverse_transform(predicted)
   for i in range(len(unscaled_predictions)):
     error = abs((unscaled_predictions[i] - outputs[i])) / outputs[i]
