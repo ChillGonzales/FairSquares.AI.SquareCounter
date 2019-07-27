@@ -2,6 +2,7 @@ import os
 import csv
 import numpy as np
 from PIL import Image, ImageOps
+from utility.utility import Normalize
 from sklearn.preprocessing import MinMaxScaler
 
 def get_data():
@@ -22,7 +23,7 @@ def get_data():
   # Get predictions
   y_actual=[]
   features=[]
-  with open('predictions.csv') as file_reader:
+  with open('C:\\Predictions\\predictions.csv') as file_reader:
     reader = csv.reader(file_reader)
     for row in reader:
       y_actual.append((row[0], float(row[-1])))
@@ -31,6 +32,8 @@ def get_data():
   features = sorted(features, key= lambda x: x[0])
 
   # Make sure our count of data is correct
+  print (len(images))
+  print (len(y_actual))
   assert (len(images) == len(y_actual))
   assert (len(features) == len(images))
 
@@ -40,13 +43,12 @@ def get_data():
   outputs = np.array([list(x[1:]) for x in y_actual])
   ft_shape = features_trimmed.shape
   im_shape = images_trimmed.shape
+  print (im_shape)
 
   # Scale data to be between (0, 1)
   image_input = np.reshape(images_trimmed, (im_shape[0], im_shape[2], im_shape[3], im_shape[4]))
   feature_input = np.reshape(features_trimmed, (ft_shape[0], ft_shape[2])).astype("int")
-  scaler_out = MinMaxScaler()
-  scaled_inputs = np.interp(image_input, (image_input.min(), image_input.max()), (0, +1))
-  scaled_features = np.interp(feature_input, (feature_input.min(), feature_input.max()), (0, +1))
-  scaled_outputs = scaler_out.fit_transform(outputs)
+  scaled_inputs = Normalize(image_input)
+  scaled_features = Normalize(feature_input)
 
-  return ([image_input, feature_input], outputs, [scaled_inputs, scaled_features], scaled_outputs, scaler_out)
+  return ([image_input, feature_input], [scaled_inputs, scaled_features], outputs)
