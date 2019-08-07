@@ -7,7 +7,7 @@ def predict():
   _, scaled_inputs, outputs = get_data()
 
   # Create model and load weights
-  head_model = create_model("vgg19", (299, 299, 3), (38, ))
+  head_model = create_model("strided", (299, 299, 3), (38, ))
   head_model.load_weights("weights.hdf5")
 
   # Predict

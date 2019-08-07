@@ -67,9 +67,25 @@ def create_model(model_name="inception", image_shape=(299, 299, 3), features_sha
         base_model.add(BatchNormalization(axis=chanDim))
         base_model.add(Dropout(0.25))
 
+        base_model.add(Conv2D(128, (3, 3), padding="same",
+                                kernel_initializer=init, kernel_regularizer=reg))
+        base_model.add(Activation("relu"))
+        base_model.add(BatchNormalization(axis=chanDim))
+        base_model.add(Conv2D(128, (3, 3), strides=(2, 2), padding="same",
+                                kernel_initializer=init, kernel_regularizer=reg))
+        base_model.add(Activation("relu"))
+        base_model.add(BatchNormalization(axis=chanDim))
+        base_model.add(Dropout(0.25))
+
     x = Flatten()(base_model.output)
     feature_input = Input(shape=features_shape)
     x = Concatenate()([x, feature_input])
+    x = Dropout(0.3)(x)
+    x = Dense(512, activation='relu', kernel_regularizer=reg, kernel_initializer=init)(x)
+    x = Dropout(0.3)(x)
+    x = Dense(512, activation='relu', kernel_regularizer=reg, kernel_initializer=init)(x)
+    x = Dropout(0.3)(x)
+    x = Dense(512, activation='relu', kernel_regularizer=reg, kernel_initializer=init)(x)
     x = Dropout(0.3)(x)
     x = Dense(512, activation='relu', kernel_regularizer=reg, kernel_initializer=init)(x)
     x = Dropout(0.3)(x)
