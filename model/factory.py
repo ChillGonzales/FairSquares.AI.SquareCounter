@@ -22,9 +22,10 @@ def create_model(model_name="inception", image_shape=(299, 299, 3), features_sha
     elif (model_name == "strided"):
         # Source: https://www.pyimagesearch.com/2018/12/31/keras-conv2d-and-convolutional-layers/
         base_model = Sequential()
-        reg = l2(0.0005)
+        reg = l2(0.5)
         init = "he_normal"
         chanDim = -1
+        dropoutRate = 0.5
         # our first CONV layer will learn a total of 16 filters, each
         # Of which are 7x7 -- we'll then apply 2x2 strides to reduce
         # the spatial dimensions of the volume
@@ -42,7 +43,7 @@ def create_model(model_name="inception", image_shape=(299, 299, 3), features_sha
                                   kernel_initializer=init, kernel_regularizer=reg))
         base_model.add(Activation("relu"))
         base_model.add(BatchNormalization(axis=chanDim))
-        base_model.add(Dropout(0.25))
+        base_model.add(Dropout(dropoutRate))
 
         # stack two more CONV layers, keeping the size of each filter
         # as 3x3 but increasing to 64 total learned filters
@@ -54,7 +55,7 @@ def create_model(model_name="inception", image_shape=(299, 299, 3), features_sha
                                 kernel_initializer=init, kernel_regularizer=reg))
         base_model.add(Activation("relu"))
         base_model.add(BatchNormalization(axis=chanDim))
-        base_model.add(Dropout(0.25))
+        base_model.add(Dropout(dropoutRate))
 
         # increase the number of filters again, this time to 128
         base_model.add(Conv2D(128, (3, 3), padding="same",
@@ -65,7 +66,7 @@ def create_model(model_name="inception", image_shape=(299, 299, 3), features_sha
                                 kernel_initializer=init, kernel_regularizer=reg))
         base_model.add(Activation("relu"))
         base_model.add(BatchNormalization(axis=chanDim))
-        base_model.add(Dropout(0.25))
+        base_model.add(Dropout(dropoutRate))
 
         base_model.add(Conv2D(128, (3, 3), padding="same",
                                 kernel_initializer=init, kernel_regularizer=reg))
@@ -75,24 +76,17 @@ def create_model(model_name="inception", image_shape=(299, 299, 3), features_sha
                                 kernel_initializer=init, kernel_regularizer=reg))
         base_model.add(Activation("relu"))
         base_model.add(BatchNormalization(axis=chanDim))
-        base_model.add(Dropout(0.25))
+        base_model.add(Dropout(dropoutRate))
 
     x = Flatten()(base_model.output)
     feature_input = Input(shape=features_shape)
     x = Concatenate()([x, feature_input])
-    x = Dropout(0.3)(x)
-    x = Dense(512, activation='relu', kernel_regularizer=reg, kernel_initializer=init)(x)
-    x = Dropout(0.3)(x)
-    x = Dense(512, activation='relu', kernel_regularizer=reg, kernel_initializer=init)(x)
-    x = Dropout(0.3)(x)
-    x = Dense(512, activation='relu', kernel_regularizer=reg, kernel_initializer=init)(x)
-    x = Dropout(0.3)(x)
-    x = Dense(512, activation='relu', kernel_regularizer=reg, kernel_initializer=init)(x)
-    x = Dropout(0.3)(x)
-    x = Dense(512, activation='relu', kernel_regularizer=reg, kernel_initializer=init)(x)
-    x = Dropout(0.3)(x)
-    x = Dense(512, activation='relu', kernel_regularizer=reg, kernel_initializer=init)(x)
-    x = Dropout(0.3)(x)
-    prediction = Dense(1, activation='linear')(x)
+    denseLayers = 5
+    denseNeuronCount = 512
+    for i in range(denseLayers):
+        x = Dense(denseNeuronCount, activation='relu', kernel_initializer=init, kernel_regularizer=reg, bias_initializer=init, bias_regularizer=reg)(x)
+        x = Dropout(dropoutRate)(x)
+    x = Dense(128, activation='relu', kernel_initializer=init, kernel_regularizer=reg, bias_regularizer=reg, bias_initializer=init)(x)
+    prediction = Dense(2, activation='relu')(x)
     head_model = Model(inputs=[base_model.input, feature_input], outputs=prediction)
     return head_model

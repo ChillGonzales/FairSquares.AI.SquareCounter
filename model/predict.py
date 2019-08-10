@@ -12,11 +12,15 @@ def predict():
 
   # Predict
   predicted = head_model.predict(scaled_inputs, batch_size=20)
-  errors = []
+  slopeErrors = []
+  interceptErrors = []
   for i in range(len(predicted)):
-    error = abs((predicted[i] - outputs[i])) / outputs[i]
-    errors.append(error)
-    # unscaled_accuracy = abs((predicted[i] - scaled_outputs[i])) / scaled_outputs[i]
-    print("Predicted: " + str(predicted[i]) + ". Actual: " + str(outputs[i]) + ". Error: " + str(error))
-  print ("Average error: " + str(np.asarray(errors).mean()))
+    slopeError = abs(predicted[i][0] - outputs[i][0]) / outputs[i][0]
+    interceptError = abs(predicted[i][1] - outputs[i][1]) / outputs[i][1]
+    slopeErrors.append(slopeError)
+    interceptErrors.append(interceptError)
+    print("Predicted: " + str(predicted[i]) + ". Actual: " + str(outputs[i]) + ". Slope error: " + str(slopeError) + ". Intercept error: " + str(interceptError))
+
+  print ("Average slope error: " + str(np.asarray(slopeErrors).mean()))
+  print ("Average intercept error: " + str(np.asarray(interceptErrors).mean()))
   print("Prediction complete!")

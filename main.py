@@ -5,7 +5,7 @@ import sys
 def main(mode="predict"):
   if (mode == "train"):
     print("Train mode was chosen.")
-    train(1000, True)
+    train(9000, True)
   else:
     print("Predict mode was chosen.")
     predict()

@@ -26,8 +26,8 @@ def get_data():
   with open('C:\\Predictions\\predictions.csv') as file_reader:
     reader = csv.reader(file_reader)
     for row in reader:
-      y_actual.append((row[0], float(row[-1])))
-      features.append((row[0], row[1:-1]))
+      y_actual.append((row[0], [float(i) for i in row[-2:]]))
+      features.append((row[0], row[1:-2]))
   y_actual = sorted(y_actual, key= lambda x: x[0])
   features = sorted(features, key= lambda x: x[0])
 
@@ -41,6 +41,8 @@ def get_data():
   images_trimmed = np.array([list(x[1:]) for x in images])
   features_trimmed = np.array([list(x[1:]) for x in features])
   outputs = np.array([list(x[1:]) for x in y_actual])
+  out_shape = outputs.shape
+  outputs = np.reshape(outputs, (out_shape[0], out_shape[-1]))
   ft_shape = features_trimmed.shape
   im_shape = images_trimmed.shape
   print (im_shape)
