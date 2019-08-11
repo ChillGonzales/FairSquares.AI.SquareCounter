@@ -21,28 +21,31 @@ def get_data():
   images = sorted(zip(keys, imgs), key= lambda x: x[0])
 
   # Get predictions
-  y_actual=[]
+  m_actual=[]
+  b_actual=[]
   features=[]
   with open('C:\\Predictions\\predictions.csv') as file_reader:
     reader = csv.reader(file_reader)
     for row in reader:
-      y_actual.append((row[0], [float(i) for i in row[-2:]]))
+      m_actual.append((row[0], float(row[-2])))
+      b_actual.append((row[0], float(row[-1])))
       features.append((row[0], row[1:-2]))
-  y_actual = sorted(y_actual, key= lambda x: x[0])
+  m_actual = sorted(m_actual, key= lambda x: x[0])
+  b_actual = sorted(b_actual, key= lambda x: x[0])
   features = sorted(features, key= lambda x: x[0])
 
   # Make sure our count of data is correct
   print (len(images))
-  print (len(y_actual))
-  assert (len(images) == len(y_actual))
+  print (len(m_actual))
+  print (len(b_actual))
+  assert (len(images) == len(m_actual))
   assert (len(features) == len(images))
 
   # Remove junk (id's) from input data
   images_trimmed = np.array([list(x[1:]) for x in images])
   features_trimmed = np.array([list(x[1:]) for x in features])
-  outputs = np.array([list(x[1:]) for x in y_actual])
-  out_shape = outputs.shape
-  outputs = np.reshape(outputs, (out_shape[0], out_shape[-1]))
+  slope_output = np.array([list(x[1:]) for x in m_actual])
+  intercept_output = np.array([list(x[1:]) for x in b_actual])
   ft_shape = features_trimmed.shape
   im_shape = images_trimmed.shape
   print (im_shape)
@@ -53,4 +56,4 @@ def get_data():
   scaled_inputs = Normalize(image_input)
   scaled_features = Normalize(feature_input)
 
-  return ([image_input, feature_input], [scaled_inputs, scaled_features], outputs)
+  return ([image_input, feature_input], [scaled_inputs, scaled_features], slope_output, intercept_output)
