@@ -22,9 +22,11 @@ def train(epochs,
   head_model.compile(optimizer=opt, loss=losses, loss_weights=lossWeights, metrics=['accuracy'])
 
   # Train model and save weights
-  # checkpoint = ModelCheckpoint("saved-model-{epoch:02d}-{loss:.1f}-{val_loss:.1f}.hdf5", monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=True, mode='auto', period=15)
+  checkpoint = ModelCheckpoint("saved-model-{epoch:02d}-{loss:.1f}-{val_loss:.1f}.hdf5", monitor='val_loss', verbose=0, save_best_only=True, 
+    save_weights_only=True, mode='auto', period=30)
   stopping = EarlyStopping(monitor='val_loss', patience=300, verbose=1)
-  history = head_model.fit(scaled_inputs, {"slope_output": slope_output, "intercept_output": intercept_output}, batch_size=len(scaled_inputs), epochs=epochs, verbose=2, shuffle=True, validation_split=0.2, callbacks=[stopping])
+  history = head_model.fit(scaled_inputs, {"slope_output": slope_output, "intercept_output": intercept_output}, 
+    batch_size=32, epochs=epochs, verbose=2, shuffle=True, validation_split=0.1, callbacks=[checkpoint, stopping])
   if (save_weights):
     head_model.save_weights("weights.hdf5")
 

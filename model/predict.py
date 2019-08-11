@@ -16,7 +16,7 @@ def predict():
   interceptErrors = []
   for i in range(len(predicted[0])):
     slopeError = abs(predicted[0][i] - slope_output[i]) / slope_output[i]
-    interceptError = abs(predicted[1][1] - intercept_output[i]) / intercept_output[i]
+    interceptError = abs(predicted[1][i] - intercept_output[i]) / intercept_output[i]
     slopeErrors.append(slopeError)
     interceptErrors.append(interceptError)
     print("Predicted: " + str(predicted[0][i]) + ". Actual: " + str(slope_output[i]) + ". Slope error: " + str(slopeError))

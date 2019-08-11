@@ -23,10 +23,10 @@ def create_model(model_name="inception", image_shape=(299, 299, 3), features_sha
         # Source: https://www.pyimagesearch.com/2018/12/31/keras-conv2d-and-convolutional-layers/
         base_model = Sequential()
         reg = l2(0.05)
-        init = "he_normal"
+        init = "normal"
         chanDim = -1
         cnnDropout = 0.25
-        denseDropout = 0.3
+        denseDropout = 0.5
         # our first CONV layer will learn a total of 16 filters, each
         # Of which are 7x7 -- we'll then apply 2x2 strides to reduce
         # the spatial dimensions of the volume
@@ -69,31 +69,23 @@ def create_model(model_name="inception", image_shape=(299, 299, 3), features_sha
         base_model.add(BatchNormalization(axis=chanDim))
         base_model.add(Dropout(cnnDropout))
 
-        base_model.add(Conv2D(128, (3, 3), padding="same",
-                                kernel_initializer=init, kernel_regularizer=reg))
-        base_model.add(Activation("relu"))
-        base_model.add(BatchNormalization(axis=chanDim))
-        base_model.add(Conv2D(128, (3, 3), strides=(2, 2), padding="same",
-                                kernel_initializer=init, kernel_regularizer=reg))
-        base_model.add(Activation("relu"))
-        base_model.add(BatchNormalization(axis=chanDim))
-        base_model.add(Dropout(cnnDropout))
-
     x = Flatten()(base_model.output)
+    x = Dropout(denseDropout)(x)
     feature_input = Input(shape=features_shape)
     x = Concatenate()([x, feature_input])
-    denseLayers = 5
-    denseNeuronCount = 256
+    x = Dropout(denseDropout)(x)
+    denseLayers = 3
+    denseNeuronCount = 128
     m = Dense(denseNeuronCount)(x)
     b = Dense(denseNeuronCount)(x)
     for i in range(denseLayers):
-        m = Dense(denseNeuronCount, activation='relu', kernel_initializer=init, kernel_regularizer=reg, bias_initializer=init, bias_regularizer=reg)(m)
+        m = Dense(denseNeuronCount, activation='relu', kernel_initializer=init, kernel_regularizer=reg)(m)
         m = Dropout(denseDropout)(m)
-        b = Dense(denseNeuronCount, activation='relu', kernel_initializer=init, kernel_regularizer=reg, bias_initializer=init, bias_regularizer=reg)(b)
+        b = Dense(denseNeuronCount, activation='relu', kernel_initializer=init, kernel_regularizer=reg)(b)
         b = Dropout(denseDropout)(b)
     m = Dense(1)(m)
-    m = Activation('relu', name="slope_output")(m)
+    m = Activation("linear", name="slope_output")(m)
     b = Dense(1)(b)
-    b = Activation("relu", name="intercept_output")(b)
+    b = Activation("linear", name="intercept_output")(b)
     head_model = Model(inputs=[base_model.input, feature_input], outputs=[m, b])
     return head_model
