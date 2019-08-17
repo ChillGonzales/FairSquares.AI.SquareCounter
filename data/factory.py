@@ -50,8 +50,6 @@ def get_data(val_split):
   features_train.drop(labels="order_id", axis=1, inplace=True)
   features_test.drop(labels="order_id", axis=1, inplace=True)
 
-  print (features_train.columns)
-
   features_norm_train = NormalizeDataframe(features_train)
   features_norm_test = NormalizeDataframe(features_test)
   images_norm_train = NormalizeArray(np.array(images_train))
