@@ -23,10 +23,10 @@ def create_model(model_name="inception", image_shape=(299, 299, 3), features_sha
         # Source: https://www.pyimagesearch.com/2018/12/31/keras-conv2d-and-convolutional-layers/
         base_model = Sequential()
         reg = l2(0.05)
-        init = "normal"
+        init = "he_normal"
         chanDim = -1
         cnnDropout = 0.25
-        denseDropout = 0.5
+        denseDropout = 0.3
         # our first CONV layer will learn a total of 16 filters, each
         # Of which are 7x7 -- we'll then apply 2x2 strides to reduce
         # the spatial dimensions of the volume
@@ -75,7 +75,7 @@ def create_model(model_name="inception", image_shape=(299, 299, 3), features_sha
     x = Concatenate()([x, feature_input])
     x = Dropout(denseDropout)(x)
     denseLayers = 3
-    denseNeuronCount = 128
+    denseNeuronCount = 32
     m = Dense(denseNeuronCount)(x)
     b = Dense(denseNeuronCount)(x)
     for i in range(denseLayers):

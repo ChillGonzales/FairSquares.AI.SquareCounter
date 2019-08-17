@@ -1,11 +1,14 @@
 import os
 import csv
 import numpy as np
+import random
 from PIL import Image, ImageOps
 from utility.utility import Normalize
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+import pandas as pd
 
-def get_data():
+def get_data(val_split):
     # Get top roof images
   img_directory = "C:\\Images"
   top_file_name = "top.png"
@@ -18,42 +21,41 @@ def get_data():
     top_arr = np.array(top_fitted)
     imgs.append(top_arr)
 
-  images = sorted(zip(keys, imgs), key= lambda x: x[0])
+  images = pd.DataFrame(sorted(zip(keys, imgs), key=lambda x: x[0]), columns=["order_id", "image"])
+  print (images)
 
-  # Get predictions
-  m_actual=[]
-  b_actual=[]
-  features=[]
-  with open('C:\\Predictions\\predictions.csv') as file_reader:
-    reader = csv.reader(file_reader)
-    for row in reader:
-      m_actual.append((row[0], float(row[-2])))
-      b_actual.append((row[0], float(row[-1])))
-      features.append((row[0], row[1:-2]))
-  m_actual = sorted(m_actual, key= lambda x: x[0])
-  b_actual = sorted(b_actual, key= lambda x: x[0])
-  features = sorted(features, key= lambda x: x[0])
+  # Get order data
+  orders = pd.read_csv('C:\\Predictions\\predictions.csv')
 
   # Make sure our count of data is correct
-  print (len(images))
-  print (len(m_actual))
-  print (len(b_actual))
-  assert (len(images) == len(m_actual))
-  assert (len(features) == len(images))
+  print ("Training using " + str(len(images)) + " total orders.")
+  assert (len(images) == len(orders))
 
-  # Remove junk (id's) from input data
-  images_trimmed = np.array([list(x[1:]) for x in images])
-  features_trimmed = np.array([list(x[1:]) for x in features])
-  slope_output = np.array([list(x[1:]) for x in m_actual])
-  intercept_output = np.array([list(x[1:]) for x in b_actual])
-  ft_shape = features_trimmed.shape
-  im_shape = images_trimmed.shape
-  print (im_shape)
+  # randomize orders data frame and join onto images
+  orders = orders.sample(frac=1).reset_index(drop=True)
+  combined = orders.join(images, on="order_id", how="left", lsuffix="_o", rsuffix="_i")
+  combined.drop(labels=["order_id_o", "order_id_i"], axis=1, inplace=True)
 
-  # Scale data to be between (0, 1)
-  image_input = np.reshape(images_trimmed, (im_shape[0], im_shape[2], im_shape[3], im_shape[4]))
-  feature_input = np.reshape(features_trimmed, (ft_shape[0], ft_shape[2])).astype("int")
-  scaled_inputs = Normalize(image_input)
-  scaled_features = Normalize(feature_input)
+  splitIndex = int(len(combined) * val_split)
 
-  return ([image_input, feature_input], [scaled_inputs, scaled_features], slope_output, intercept_output)
+  features_train = combined.iloc[splitIndex:, :-3]
+  features_test = combined.iloc[:splitIndex:, :-3]
+  output_train = combined.iloc[splitIndex:, -3:-1]
+  output_test = combined.iloc[:splitIndex, -3:-1]
+  images_train = combined.iloc[splitIndex:, [-1]]
+  images_test = combined.iloc[:splitIndex, [-1]]
+
+  features_norm_train = Normalize(features_train)
+  features_norm_test = Normalize(features_test)
+  images_norm_train = Normalize(images_train)
+  images_norm_test = Normalize(images_test)
+
+  result = []
+  for r in images_train["image"]:
+    print (r)
+    result.append(r)
+  print (np.shape(result))
+
+  return ([images_train.values, features_train.values], [images_test.values, features_test.values],
+  [images_norm_train.values, features_norm_train.values], [images_norm_test.values, features_norm_test.values], 
+  [output_train["area_slope"].values, output_train["area_intercept"].values], [output_test["area_slope"].values, output_test["area_intercept"].values])
