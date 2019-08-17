@@ -3,7 +3,7 @@ import csv
 import numpy as np
 import random
 from PIL import Image, ImageOps
-from utility.utility import Normalize
+from utility.utility import NormalizeDataframe, NormalizeArray
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 import pandas as pd
@@ -21,41 +21,42 @@ def get_data(val_split):
     top_arr = np.array(top_fitted)
     imgs.append(top_arr)
 
-  images = pd.DataFrame(sorted(zip(keys, imgs), key=lambda x: x[0]), columns=["order_id", "image"])
-  print (images)
+  images = dict(sorted(zip(keys, imgs), key=lambda x: x[0]))
 
   # Get order data
   orders = pd.read_csv('C:\\Predictions\\predictions.csv')
 
   # Make sure our count of data is correct
-  print ("Training using " + str(len(images)) + " total orders.")
   assert (len(images) == len(orders))
+  print ("Training using " + str(len(images)) + " total orders.")
 
-  # randomize orders data frame and join onto images
+  # randomize orders dataframe
   orders = orders.sample(frac=1).reset_index(drop=True)
-  combined = orders.join(images, on="order_id", how="left", lsuffix="_o", rsuffix="_i")
-  combined.drop(labels=["order_id_o", "order_id_i"], axis=1, inplace=True)
+  splitIndex = int(len(orders) * val_split)
 
-  splitIndex = int(len(combined) * val_split)
+  features_train = orders.iloc[splitIndex:, :-2]
+  features_test = orders.iloc[:splitIndex:, :-2]
+  output_train = orders.iloc[splitIndex:, -2:]
+  output_test = orders.iloc[:splitIndex, -2:]
 
-  features_train = combined.iloc[splitIndex:, :-3]
-  features_test = combined.iloc[:splitIndex:, :-3]
-  output_train = combined.iloc[splitIndex:, -3:-1]
-  output_test = combined.iloc[:splitIndex, -3:-1]
-  images_train = combined.iloc[splitIndex:, [-1]]
-  images_test = combined.iloc[:splitIndex, [-1]]
+  # Construct image inputs in same order as randomized feature inputs
+  images_train = []
+  images_test = []
+  for order in features_train["order_id"]:
+    images_train.append(images[str(order)])
+  for order in features_test["order_id"]:
+    images_test.append(images[str(order)])
+  
+  features_train.drop(labels="order_id", axis=1, inplace=True)
+  features_test.drop(labels="order_id", axis=1, inplace=True)
 
-  features_norm_train = Normalize(features_train)
-  features_norm_test = Normalize(features_test)
-  images_norm_train = Normalize(images_train)
-  images_norm_test = Normalize(images_test)
+  print (features_train.columns)
 
-  result = []
-  for r in images_train["image"]:
-    print (r)
-    result.append(r)
-  print (np.shape(result))
+  features_norm_train = NormalizeDataframe(features_train)
+  features_norm_test = NormalizeDataframe(features_test)
+  images_norm_train = NormalizeArray(np.array(images_train))
+  images_norm_test = NormalizeArray(np.array(images_test))
 
-  return ([images_train.values, features_train.values], [images_test.values, features_test.values],
-  [images_norm_train.values, features_norm_train.values], [images_norm_test.values, features_norm_test.values], 
+  return ([images_train, features_train.values], [images_test, features_test.values],
+  [images_norm_train, features_norm_train.values], [images_norm_test, features_norm_test.values], 
   [output_train["area_slope"].values, output_train["area_intercept"].values], [output_test["area_slope"].values, output_test["area_intercept"].values])
