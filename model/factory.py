@@ -22,7 +22,7 @@ def create_model(model_name="inception", image_shape=(299, 299, 3), features_sha
     elif (model_name == "strided"):
         # Source: https://www.pyimagesearch.com/2018/12/31/keras-conv2d-and-convolutional-layers/
         base_model = Sequential()
-        reg = l2(0.05)
+        reg = l2(0.5)
         init = "he_normal"
         chanDim = -1
         cnnDropout = 0.25
@@ -74,7 +74,7 @@ def create_model(model_name="inception", image_shape=(299, 299, 3), features_sha
     feature_input = Input(shape=features_shape)
     x = Concatenate()([x, feature_input])
     x = Dropout(denseDropout)(x)
-    denseLayers = 3
+    denseLayers = 1
     denseNeuronCount = 128
     m = Dense(denseNeuronCount)(x)
     b = Dense(denseNeuronCount)(x)
