@@ -13,7 +13,7 @@ def train(epochs,
 
   # Get model
   head_model = create_model("strided", (299, 299, 3), (6, ))
-  INIT_LR = 1e-4
+  INIT_LR = 1e-5
   opt = Adam(lr=INIT_LR, decay=INIT_LR / epochs)
   losses = {
     "slope_output": "mean_squared_error",
