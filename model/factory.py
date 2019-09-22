@@ -27,10 +27,7 @@ def create_model(model_name="inception", image_shape=(299, 299, 3), features_sha
         chanDim = -1
         cnnDropout = 0.25
         denseDropout = 0.5
-        # our first CONV layer will learn a total of 16 filters, each
-        # Of which are 7x7 -- we'll then apply 2x2 strides to reduce
-        # the spatial dimensions of the volume
-        base_model.add(Conv2D(16, (7, 7), strides=(2, 2), padding="valid",
+        base_model.add(Conv2D(16, (3, 3), strides=(2, 2), padding="valid",
                               kernel_initializer=init, kernel_regularizer=reg,
                               input_shape=image_shape))
 
@@ -71,11 +68,13 @@ def create_model(model_name="inception", image_shape=(299, 299, 3), features_sha
 
     x = Flatten()(base_model.output)
     x = Dropout(denseDropout)(x)
+    x = Dense(256)(x)
+    x = Dropout(denseDropout)(x)
     feature_input = Input(shape=features_shape)
     x = Concatenate()([x, feature_input])
-    x = Dropout(denseDropout)(x)
+    # x = Dropout(denseDropout)(x)
     denseLayers = 1
-    denseNeuronCount = 128
+    denseNeuronCount = 175
     m = Dense(denseNeuronCount)(x)
     b = Dense(denseNeuronCount)(x)
     for i in range(denseLayers):

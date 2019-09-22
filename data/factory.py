@@ -28,7 +28,7 @@ def get_data(val_split, randomize):
 
   # Make sure our count of data is correct
   assert (len(images) == len(orders))
-  print ("Training using " + str(len(images)) + " total orders.")
+  print ("Using " + str(len(images)) + " total orders.")
 
   # randomize orders dataframe
   if (randomize == True):
