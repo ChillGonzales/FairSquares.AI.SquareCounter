@@ -68,11 +68,11 @@ def create_model(model_name="inception", image_shape=(299, 299, 3), features_sha
 
     x = Flatten()(base_model.output)
     x = Dropout(denseDropout)(x)
-    x = Dense(256)(x)
-    x = Dropout(denseDropout)(x)
+    # x = Dense(256)(x)
+    # x = Dropout(denseDropout)(x)
     feature_input = Input(shape=features_shape)
     x = Concatenate()([x, feature_input])
-    # x = Dropout(denseDropout)(x)
+    x = Dropout(denseDropout)(x)
     denseLayers = 1
     denseNeuronCount = 175
     m = Dense(denseNeuronCount)(x)
