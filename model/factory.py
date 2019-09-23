@@ -27,7 +27,7 @@ def create_model(model_name="inception", image_shape=(299, 299, 3), features_sha
         chanDim = -1
         cnnDropout = 0.25
         denseDropout = 0.5
-        base_model.add(Conv2D(16, (3, 3), strides=(2, 2), padding="valid",
+        base_model.add(Conv2D(32, (3, 3), strides=(2, 2), padding="valid",
                               kernel_initializer=init, kernel_regularizer=reg,
                               input_shape=image_shape))
 
@@ -68,8 +68,6 @@ def create_model(model_name="inception", image_shape=(299, 299, 3), features_sha
 
     x = Flatten()(base_model.output)
     x = Dropout(denseDropout)(x)
-    # x = Dense(256)(x)
-    # x = Dropout(denseDropout)(x)
     feature_input = Input(shape=features_shape)
     x = Concatenate()([x, feature_input])
     x = Dropout(denseDropout)(x)
