@@ -4,8 +4,7 @@ from keras.models import Model, Sequential
 from keras.regularizers import l2
 from keras.optimizers import Adam
 
-
-def create_model(model_name="inception", image_shape=(299, 299, 3), features_shape=(38, )):
+def create_model(model_name: str = "strided", image_shape: tuple = (299, 299, 3), features_shape: tuple = (38, )):
     if (model_name == "inception"):
         # Keras model
         base_model = keras.applications.inception_v3.InceptionV3(include_top=False,

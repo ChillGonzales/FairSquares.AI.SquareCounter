@@ -5,11 +5,9 @@ from keras.callbacks import ModelCheckpoint, EarlyStopping
 import matplotlib.pyplot as plt
 import numpy as np
 
-def train(epochs,
-          save_weights=True):
-
+def train(epochs: int, save_weights: bool, test_split: float):
   # Get training data
-  _, _, scaled_train, scaled_test, output_train, output_test, output_norm_train, output_norm_test, _ = get_data(val_split=0.20, randomize=True)
+  _, _, scaled_train, scaled_test, output_train, output_test, output_norm_train, output_norm_test, _ = get_data(val_split=0.15, test_split=test_split, randomize=True)
 
   # Get model
   head_model = create_model("strided", (299, 299, 3), (6, ))

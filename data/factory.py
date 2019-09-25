@@ -8,7 +8,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 import pandas as pd
 
-def get_data(val_split, randomize):
+def get_data(val_split: float, test_split: float, randomize: bool):
     # Get top roof images
   img_directory = "C:\\Images"
   top_file_name = "top.png"

@@ -5,20 +5,21 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-def predict():
+def predict(weights_file_name: str, test_split: float):
   # Get data
-  _, _, scaled_train, scaled_test, output_train, _, _, _, output_ranges = get_data(val_split=0.0, randomize=False)
-
+  _, _, scaled_train, scaled_test, output_train, _, _, _, output_ranges = get_data(val_split=0.0, test_split=0.0, randomize=False)
   slope_output = output_train[0]
   intercept_output = output_train[1]
+
   # Create model and load weights
   head_model = create_model("strided", (299, 299, 3), (6, ))
-  head_model.load_weights("weights.hdf5")
-
+  head_model.load_weights(weights_file_name + ".hdf5")
   ranges = output_ranges[0]
 
   # Predict
   predicted = head_model.predict(scaled_train, batch_size=20)
+  if (test_split > 0):
+    predicted = predicted[0][:(test_split * len(predicted))]
   denormed_slope = DenormalizeWithRange(predicted[0][:], ranges["area_slope"])
   denormed_intercept = DenormalizeWithRange(predicted[1][:], ranges["area_intercept"])
   slopeDiffs = []
@@ -28,10 +29,8 @@ def predict():
     interceptDiff = denormed_intercept[i] - intercept_output[i] 
     slopeDiffs.append(slopeDiff)
     interceptDiffs.append(interceptDiff)
-    if (slopeDiff > 50):
-      print("[SLOPE] Predicted: " + str(denormed_slope[i]) + ". Actual: " + str(slope_output[i]) + ". Difference: " + str(slopeDiff))
-    if (abs(interceptDiff) > 500): 
-      print("[INTERCEPT] Predicted: " + str(denormed_intercept[i]) + ". Actual: " + str(intercept_output[i]) + ". Difference: " + str(interceptDiff))
+    print("[SLOPE] Predicted: " + str(denormed_slope[i]) + ". Actual: " + str(slope_output[i]) + ". Difference: " + str(slopeDiff))
+    print("[INTERCEPT] Predicted: " + str(denormed_intercept[i]) + ". Actual: " + str(intercept_output[i]) + ". Difference: " + str(interceptDiff))
 
   print ("Average slope diff: " + str(np.asarray(slopeDiffs).mean()))
   print ("Slope diff std. dev.: " + str(np.asarray(slopeDiffs).std()))
