@@ -1,13 +1,17 @@
 from model.factory import create_model
-from data.factory import get_data
+from data.factory import get_data, DataKeys
 from keras.optimizers import Adam, SGD
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 import matplotlib.pyplot as plt
 import numpy as np
 
-def train(epochs: int, save_weights: bool, test_split: float):
+def train(epochs: int, save_model: bool, test_split: float):
   # Get training data
-  _, _, scaled_train, scaled_test, output_train, output_test, output_norm_train, output_norm_test, _ = get_data(val_split=0.15, test_split=test_split, randomize=True)
+  data = get_data(val_split=0.15, test_split=test_split, randomize=True)
+  normalized_features_train = data[DataKeys.NormalizedFeaturesTrain]
+  normalized_features_test = data[DataKeys.NormalizedFeaturesTest]
+  normalized_output_train = data[DataKeys.NormalizedOutputTrain]
+  normalized_output_test = data[DataKeys.NormalizedOutputTest]
 
   # Get model
   head_model = create_model("strided", (299, 299, 3), (6, ))
@@ -25,11 +29,18 @@ def train(epochs: int, save_weights: bool, test_split: float):
     save_weights_only=True, mode='auto', period=100)
   stopping = EarlyStopping(monitor='val_loss', patience=100, verbose=1)
   history = head_model.fit(
-    x=scaled_train, y={"slope_output": output_norm_train[0], "intercept_output": output_norm_train[1]}, 
-    validation_data=(scaled_test, {"slope_output": output_norm_test[0], "intercept_output": output_norm_test[1]}),
-    batch_size=32, epochs=epochs, verbose=2, shuffle=True, callbacks=[checkpoint, stopping])
-  if (save_weights):
-    head_model.save_weights("weights.hdf5")
+    x = {"image_input": normalized_features_train[0], "feature_input": normalized_features_train[1]},
+    y = {"slope_output": normalized_output_train[0], "intercept_output": normalized_output_train[1]}, 
+    validation_data=({"image_input": normalized_features_test[0], "feature_input": normalized_features_test[1]}, 
+      {"slope_output": normalized_output_test[0], "intercept_output": normalized_output_test[1]}),
+    batch_size=32, 
+    epochs=epochs, 
+    verbose=2, 
+    shuffle=True, 
+    callbacks=[checkpoint, stopping]
+  )
+  if (save_model):
+    head_model.save("model.hdf5")
 
   print("Training complete!")
   # Plot training & validation loss values

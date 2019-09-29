@@ -1,25 +1,27 @@
-from data.factory import get_data
+from data.factory import get_data, DataKeys
 from model.factory import create_model
 from utility.utility import DenormalizeWithRange
+from keras.models import load_model
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-def predict(weights_file_name: str, test_split: float):
+def predict(model_file_name: str, test_split: float):
   # Get data
-  _, _, scaled_train, scaled_test, output_train, _, _, _, output_ranges = get_data(val_split=0.0, test_split=0.0, randomize=False)
-  slope_output = output_train[0]
-  intercept_output = output_train[1]
+  # _, _, normalized_features_train, normalized_features_test, raw_output_train, _, _, _, output_ranges_train = get_data(val_split=0.0, test_split=0.0, randomize=False)
+  data = get_data(val_split=0.15, test_split=test_split, randomize=True)
+  normalized_features_train = data[DataKeys.NormalizedFeaturesTrain]
+  output_ranges_train = data[DataKeys.OutputRangesTrain]
+  raw_output_train = data[DataKeys.RawOutputTrain]
+  slope_output = raw_output_train[0]
+  intercept_output = raw_output_train[1]
 
   # Create model and load weights
-  head_model = create_model("strided", (299, 299, 3), (6, ))
-  head_model.load_weights(weights_file_name + ".hdf5")
-  ranges = output_ranges[0]
+  head_model = load_model(model_file_name + ".hdf5")
+  ranges = output_ranges_train
 
   # Predict
-  predicted = head_model.predict(scaled_train, batch_size=20)
-  if (test_split > 0):
-    predicted = predicted[0][:(test_split * len(predicted))]
+  predicted = head_model.predict({"image_input": normalized_features_train[0], "feature_input": normalized_features_train[1]}, batch_size=20)
   denormed_slope = DenormalizeWithRange(predicted[0][:], ranges["area_slope"])
   denormed_intercept = DenormalizeWithRange(predicted[1][:], ranges["area_intercept"])
   slopeDiffs = []

@@ -8,8 +8,20 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 import pandas as pd
 
+class DataKeys:
+  RawFeaturesTrain = "RawFeaturesTrain"
+  RawFeaturesTest = "RawFeaturesTest"
+  NormalizedFeaturesTrain = "NormalizedFeaturesTrain"
+  NormalizedFeaturesTest = "NormalizedFeaturesTest"
+  RawOutputTrain = "RawOutputTrain"
+  RawOutputTest = "RawOutputTest",
+  NormalizedOutputTrain = "ScaledOutputTrain"
+  NormalizedOutputTest = "ScaledOutputTest"
+  OutputRangesTrain = "OutputRangesTrain"
+  OutputRangesTest = "OutputRangesTest"
+
 def get_data(val_split: float, test_split: float, randomize: bool):
-    # Get top roof images
+  # Get top roof images
   img_directory = "C:\\Images"
   top_file_name = "top.png"
   img_size = 299, 299
@@ -18,7 +30,7 @@ def get_data(val_split: float, test_split: float, randomize: bool):
   for name in keys:
     top = Image.open(img_directory + "\\" + name + "\\" + top_file_name).convert("RGB")
     top_fitted = ImageOps.fit(top, img_size, Image.ANTIALIAS)
-    top_arr = np.array(top_fitted)
+    top_arr = np.array(top_fitted, dtype="int32")
     imgs.append(top_arr)
 
   images = dict(sorted(zip(keys, imgs), key=lambda x: x[0]))
@@ -67,13 +79,20 @@ def get_data(val_split: float, test_split: float, randomize: bool):
   images_norm_test = NormalizeArray(np.array(images_test))
 
   if (val_split > 0.0):
-    output_test = [output_test["area_slope"].values, output_test["area_intercept"].values]
-    output_norm_test = [output_norm_test["area_slope"].values, output_norm_test["area_intercept"].values]
+    output_test = (output_test["area_slope"].values, output_test["area_intercept"].values)
+    output_norm_test = (output_norm_test["area_slope"].values, output_norm_test["area_intercept"].values)
   else:
-    output_test = []
-    output_norm_test = []
-
-  return ([images_train, features_train.values], [images_test, features_test.values],
-  [images_norm_train, features_norm_train.values], [images_norm_test, features_norm_test.values], 
-  [output_train["area_slope"].values, output_train["area_intercept"].values], output_test, 
-  [output_norm_train["area_slope"].values, output_norm_train["area_intercept"].values], output_norm_test, [ranges_output_train, ranges_output_test])
+    output_test = ()
+    output_norm_test = ()
+  return {
+    DataKeys.RawFeaturesTrain: (images_train, features_train.values),
+    DataKeys.RawFeaturesTest: (images_test, features_test.values),
+    DataKeys.NormalizedFeaturesTrain: (images_norm_train, features_norm_train.values),
+    DataKeys.NormalizedFeaturesTest: (images_norm_test, features_norm_test.values),
+    DataKeys.RawOutputTrain: (output_train["area_slope"].values, output_train["area_intercept"].values),
+    DataKeys.RawOutputTest: output_test,
+    DataKeys.NormalizedOutputTrain: (output_norm_train["area_slope"].values, output_norm_train["area_intercept"].values),
+    DataKeys.NormalizedOutputTest: output_norm_test,
+    DataKeys.OutputRangesTrain: ranges_output_train,
+    DataKeys.OutputRangesTest: ranges_output_test
+  }
