@@ -20,13 +20,13 @@ def create_model(model_name: str = "strided", image_shape: tuple = (299, 299, 3)
                                                     pooling=None)
     elif (model_name == "strided"):
         # Source: https://www.pyimagesearch.com/2018/12/31/keras-conv2d-and-convolutional-layers/
-        reg = l2(0.5)
+        reg = l2(0.2)
         init = "he_normal"
         chanDim = -1
         cnnDropout = 0.25
         denseDropout = 0.5
         image_input = Input(shape=image_shape, name="image_input")
-        base_model = Conv2D(32, (3, 3), strides=(2, 2), padding="valid", kernel_initializer=init, kernel_regularizer=reg)(image_input)
+        base_model = Conv2D(16, (3, 3), strides=(2, 2), padding="valid", kernel_initializer=init, kernel_regularizer=reg)(image_input)
 
         # here we stack two CONV layers on top of each other where
         # each layers will learn a total of 32 (3x3) filters
